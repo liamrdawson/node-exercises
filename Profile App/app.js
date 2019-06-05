@@ -13,6 +13,10 @@ function printMessage(username, badgeCount, points) {
     console.log(message);
 }
 
+//  Print error messages
+function printError(error){
+    console.error(error.message);
+}
 
 function getProfile(username) {
     try {
@@ -24,15 +28,19 @@ function getProfile(username) {
                 body += (`data: `, data.toString());
             });
             response.on(`end`, () => {
-        //  Parse the data
-                const profile = JSON.parse(body);
-        //  Print the data
-                printMessage(username, profile.badges.length, profile.points.JavaScript)
+                try {
+                    //  Parse the data
+                    const profile = JSON.parse(body);
+                    //  Print the data
+                    printMessage(username, profile.badges.length, profile.points.JavaScript);
+                } catch (error) {
+                    printError(error);
+                }
             });
         } );
-        request.on('error', error => console.error(`Problem with request: ${error.message}`));
+        request.on('error', printError);
     } catch (error) {
-        console.error(error.message);
+        printError(error);
     }
 }
 
