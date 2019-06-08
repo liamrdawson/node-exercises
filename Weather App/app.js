@@ -13,24 +13,38 @@
 const http = require('http');
 const https = require('https');
 
-function printMessage(weather, location) {
-    const message = `It is currently ${weather} in ${location}`;
+function printMessage(weather, location, temp) {
+    const celsius = Math.round(temp - 273.5);
+    const message = `There's currently ${weather} in ${location}, with a temperature of about ${celsius} degrees.`;
     console.log(message);
 }
 
-function getWeather() {
-    const request = http.get(`http://api.openweathermap.org/data/2.5/weather?lat=53.114106&lon=-4.266810&APPID=88334d6be23fa78599a5e68fcc1d3b6e`, response => {
+function getLongLat(postcode) {
+    const requestLongLat = https.get(`https://api.postcodes.io/postcodes/${postcode}`, response => {
         let body = ` `;
-        response.on(`data`, (data) => {
-            body += (`data`, data.toString());
-            console.log(body);
+        response.on(`data`, data => {
+            body += (`data: `, data.toString());
         });
         response.on(`end`, () => {
-            const area = JSON.parse(body);
-            printMessage(area.weather[0].main, area.name);
+            const location = JSON.parse(body); 
+            getWeather(location.result.latitude, location.result.longitude);
         });
-
     });
 }
 
-getWeather();
+
+function getWeather(latitude, longitude) {
+    const request = http.get(`http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&APPID=88334d6be23fa78599a5e68fcc1d3b6e`, response => {
+        let body = ` `;
+        response.on(`data`, (data) => {
+            body += (`data`, data.toString());
+        });
+        response.on(`end`, () => {
+            const area = JSON.parse(body);
+            printMessage(area.weather[0].description, area.name, area.main.temp);
+        });
+    });
+}
+
+const postcodes = process.argv.slice(2);
+postcodes.forEach(getLongLat);
