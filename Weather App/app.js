@@ -19,17 +19,33 @@ function printMessage(weather, location, temp) {
     console.log(message);
 }
 
-function getLongLat(postcode) {
-    const requestLongLat = https.get(`https://api.postcodes.io/postcodes/${postcode}`, response => {
-        let body = ` `;
-        response.on(`data`, data => {
-            body += (`data: `, data.toString());
+function getLongLat(place) {
+    const regex = /\d/g;
+    if (regex.test(place) === true) {
+        console.log(`${place} does look like a postcode!`);
+        const requestLongLat = https.get(`https://api.postcodes.io/postcodes/${place}`, response => {
+            let body = ` `;
+            response.on(`data`, data => {
+                body += (`data: `, data.toString());
+            });
+            response.on(`end`, () => {
+                const location = JSON.parse(body); 
+                getWeather(location.result.latitude, location.result.longitude);
+            });
         });
-        response.on(`end`, () => {
-            const location = JSON.parse(body); 
-            getWeather(location.result.latitude, location.result.longitude);
+    } else {
+        console.log(`${place} does look like a place name!`);
+        const requestLongLat = http.get(`http://api.openweathermap.org/data/2.5/weather?q=${place},uk&APPID=88334d6be23fa78599a5e68fcc1d3b6e`, response => {
+            let body = ` `;
+            response.on(`data`, data => {
+                body += (`data: `, data.toString());
+            });
+            response.on(`end`, () => {
+                const location = JSON.parse(body); 
+                getWeather(location.coord.lat, location.coord.lon);
+            });
         });
-    });
+    }
 }
 
 
