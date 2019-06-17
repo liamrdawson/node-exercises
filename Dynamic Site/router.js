@@ -1,21 +1,32 @@
 const Profile = require("./profile.js");
 const renderer = require("./renderer.js");
 const commonHeader = {'Content-Type': 'text/html'};
-
+const querystring = require('querystring');
 
 // handle HTTP route GET / and POST / ie Home
 function home(request, response) {
 // if url == "/" && GET 
     if (request.url === "/") {
+        if (request.method.toLowerCase() === "get") {
+            //    show search
+            response.writeHead(200, commonHeader);
+            renderer.view('header', {}, response);
+            renderer.view('search', {}, response);
+            renderer.view('footer', {}, response);
+            response.end();
+        } else {
+            // if url == "/" && POST 
 
-    //    show search
-        response.writeHead(200, commonHeader);
-        renderer.view('header', {}, response);
-        renderer.view('search', {}, response);
-        renderer.view('footer', {}, response);
-        response.end();
-    // if url == "/" && POST 
-    //    redirect to /:username 
+            //Get the post data from body
+            request.on('data', function(postBody) {
+                console.log(postBody.toString());
+                //Extract username
+                let query = querystring.parse(postBody.toString());
+                response.writeHead(303, {location: `/${query.username}`});
+                response.end();
+                //redirect to /:username 
+            }) 
+        }
     }
 }
 
